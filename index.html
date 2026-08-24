@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tarefas — painel</title>
+<style>
+  :root {
+    --paper: #efe9de;
+    --ink: #21201c;
+    --ink-soft: #6b6558;
+    --line: #cfc6b4;
+    --accent: #3d5a45;
+    --accent-soft: #e4e9df;
+    --danger: #8c3b2e;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--paper);
+    background-image:
+      repeating-linear-gradient(180deg, transparent, transparent 27px, var(--line) 28px);
+    color: var(--ink);
+    font-family: var(--serif);
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px;
+  }
+
+  .sheet {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 12px;
+    margin-bottom: 4px;
+  }
+
+  h1 {
+    font-size: 28px;
+    margin: 0;
+    letter-spacing: 0.01em;
+  }
+
+  .count {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  form {
+    display: flex;
+    gap: 8px;
+    margin: 20px 0 28px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    font-family: var(--serif);
+    font-size: 16px;
+    padding: 10px 12px;
+    border: 1.5px solid var(--ink);
+    background: #faf7f0;
+    color: var(--ink);
+    border-radius: 3px;
+  }
+
+  input[type="text"]:focus {
+    outline: 3px solid var(--accent-soft);
+    outline-offset: 1px;
+    border-color: var(--accent);
+  }
+
+  button {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border: 1.5px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0 18px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  button:hover { opacity: 0.85; }
+  button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  ul { list-style: none; margin: 0; padding: 0; }
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 2px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .toggle {
+    margin-top: 3px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    border: 1.5px solid var(--ink);
+    border-radius: 50%;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .toggle[aria-pressed="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .toggle[aria-pressed="true"]::after {
+    content: "✓";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--paper);
+    font-family: var(--mono);
+  }
+
+  .task-body { flex: 1; min-width: 0; }
+
+  .task-title {
+    font-size: 17px;
+    word-break: break-word;
+  }
+
+  .task-title.done {
+    color: var(--ink-soft);
+    text-decoration: line-through;
+    text-decoration-color: var(--ink-soft);
+  }
+
+  .task-desc {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  .delete-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid transparent;
+    padding: 4px 8px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .delete-btn:hover { border-color: var(--danger); background: #f6e9e6; }
+
+  .empty {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-soft);
+    padding: 24px 2px;
+    text-align: center;
+  }
+
+  .status {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--danger);
+    min-height: 16px;
+    margin-top: -18px;
+    margin-bottom: 12px;
+  }
+
+  .server-hint {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 40px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+  <main class="sheet">
+    <header>
+      <h1>Tarefas</h1>
+      <span class="count" id="count">0 abertas</span>
+    </header>
+
+    <form id="form">
+      <input type="text" id="title" placeholder="Nova tarefa…" autocomplete="off" required />
+      <button type="submit">Adicionar</button>
+    </form>
+
+    <p class="status" id="status"></p>
+
+    <ul id="list"></ul>
+    <p class="empty" id="empty" hidden>Nenhuma tarefa ainda. Adicione a primeira acima.</p>
+
+    <p class="server-hint">
+      conectando em http://localhost:3000 — inicie a API com <code>npm start</code> na pasta tasks-api
+    </p>
+  </main>
+
+<script>
+  const API_URL = "http://localhost:3000/api/tasks";
+
+  const form = document.getElementById("form");
+  const titleInput = document.getElementById("title");
+  const list = document.getElementById("list");
+  const empty = document.getElementById("empty");
+  const count = document.getElementById("count");
+  const status = document.getElementById("status");
+
+  function setStatus(msg) {
+    status.textContent = msg || "";
+  }
+
+  async function fetchTasks() {
+    try {
+      const res = await fetch(API_URL);
+      if (!res.ok) throw new Error("Falha ao buscar tarefas");
+      const data = await res.json();
+      renderTasks(data.tasks);
+      setStatus("");
+    } catch (err) {
+      setStatus("Não foi possível conectar à API. Verifique se o servidor está rodando (npm start).");
+    }
+  }
+
+  function renderTasks(tasks) {
+    list.innerHTML = "";
+    empty.hidden = tasks.length > 0;
+
+    const abertas = tasks.filter((t) => !t.completed).length;
+    count.textContent = `${abertas} aberta${abertas === 1 ? "" : "s"}`;
+
+    tasks.forEach((task) => {
+      const li = document.createElement("li");
+
+      const toggle = document.createElement("button");
+      toggle.className = "toggle";
+      toggle.type = "button";
+      toggle.setAttribute("aria-pressed", task.completed);
+      toggle.setAttribute("aria-label", "Marcar como concluída");
+      toggle.addEventListener("click", () => toggleTask(task));
+
+      const body = document.createElement("div");
+      body.className = "task-body";
+
+      const titleEl = document.createElement("div");
+      titleEl.className = "task-title" + (task.completed ? " done" : "");
+      titleEl.textContent = task.title;
+      body.appendChild(titleEl);
+
+      if (task.description) {
+        const descEl = document.createElement("div");
+        descEl.className = "task-desc";
+        descEl.textContent = task.description;
+        body.appendChild(descEl);
+      }
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "delete-btn";
+      delBtn.type = "button";
+      delBtn.textContent = "Excluir";
+      // O id da tarefa já veio dentro do objeto "task" — não precisamos digitar nada.
+      delBtn.addEventListener("click", () => deleteTask(task.id));
+
+      li.appendChild(toggle);
+      li.appendChild(body);
+      li.appendChild(delBtn);
+      list.appendChild(li);
+    });
+  }
+
+  async function createTask(title) {
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      if (!res.ok) throw new Error("Falha ao criar tarefa");
+      await fetchTasks();
+    } catch (err) {
+      setStatus("Não foi possível criar a tarefa.");
+    }
+  }
+
+  async function toggleTask(task) {
+    try {
+      const res = await fetch(`${API_URL}/${task.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ completed: !task.completed }),
+      });
+      if (!res.ok) throw new Error("Falha ao atualizar tarefa");
+      await fetchTasks();
+    } catch (err) {
+      setStatus("Não foi possível atualizar a tarefa.");
+    }
+  }
+
+  async function deleteTask(id) {
+    try {
+      const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      if (!res.ok && res.status !== 204) throw new Error("Falha ao excluir tarefa");
+      await fetchTasks();
+    } catch (err) {
+      setStatus("Não foi possível excluir a tarefa.");
+    }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const title = titleInput.value.trim();
+    if (!title) return;
+    createTask(title);
+    titleInput.value = "";
+  });
+
+  fetchTasks();
+</script>
+</body>
+</html>

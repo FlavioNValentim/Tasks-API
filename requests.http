@@ -1,0 +1,62 @@
+@baseUrl = http://localhost:3000
+
+### Health check
+GET {{baseUrl}}/
+
+### Listar todas as tarefas
+GET {{baseUrl}}/api/tasks
+
+### Listar apenas tarefas concluídas
+GET {{baseUrl}}/api/tasks?completed=true
+
+### Listar apenas tarefas não concluídas
+GET {{baseUrl}}/api/tasks?completed=false
+
+### Buscar uma tarefa pelo id
+GET {{baseUrl}}/api/tasks/1
+
+### Criar uma nova tarefa
+POST {{baseUrl}}/api/tasks
+Content-Type: application/json
+
+{
+  "title": "Estudar Node.js",
+  "description": "Capítulo sobre Express"
+}
+
+### Atualizar uma tarefa (marcar como concluída)
+PUT {{baseUrl}}/api/tasks/1
+Content-Type: application/json
+
+{
+  "completed": true
+}
+
+### Atualizar título e descrição de uma tarefa
+PUT {{baseUrl}}/api/tasks/1
+Content-Type: application/json
+
+{
+  "title": "Estudar Node.js e Express",
+  "description": "Revisar capítulos 1 a 3"
+}
+
+### Excluir uma tarefa
+DELETE {{baseUrl}}/api/tasks/1
+
+
+### ==========================================
+### Exemplo: excluir sem digitar o id na mão
+### ==========================================
+
+### 1) Nomeie a requisição de criação com "# @name"
+# @name novaTask
+POST {{baseUrl}}/api/tasks
+Content-Type: application/json
+
+{
+  "title": "Tarefa temporária"
+}
+
+### 2) Use o id da resposta acima automaticamente na exclusão
+DELETE {{baseUrl}}/api/tasks/{{novaTask.response.body.$.id}}

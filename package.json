@@ -1,0 +1,15 @@
+{
+  "name": "tasks-api",
+  "version": "1.0.0",
+  "description": "API REST para gerenciamento de tarefas (CRUD) usando Node.js e Express",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "keywords": ["api", "rest", "tasks", "express", "nodejs"],
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
